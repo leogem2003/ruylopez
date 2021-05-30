@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruy Lopez</title>
+    <link rel="stylesheet" href="css/chessboard-1.0.0.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+        crossorigin="anonymous"></script>
+    <script src="js/chessboard-1.0.0.js"></script>
+    <script src="js/chess.js"></script>
+</head>
+<body>
+  <main>
+    <section class="chessboard">
+      <div id="myBoard" style="width:90vh;"></div>
+      <button id="clear">clear</button>
+      <button id="before"><</button>
+      <button id="after" disabled>></button>
+    </section>
+    <section class="moves">
+      <ol class="visible" data-button="RuyLopez">
+        <li><p>e4  e5</p></li>
+        <li><p>Cf3 Cc6</p></li>
+        <li><p>Ab5 </p></li>
+      </ol>
+      <ol data-button="ClosedSpanish">
+        <li><p>e4  e5</p></li>
+        <li><p>Cf3 Cc6</p></li>
+        <li><p>Ab5 a6</p></li>
+        <li><p>Aa4 Cf6</p></li>
+        <li><p>O-O Ae7</p></li>
+        <li><p>Te1 b5</p></li>
+        <li><p>Ab3 d6</p></li>
+        <li><p>c3  O-O</p></li>
+        <li><p>h3  Ca5</p></li>
+        <li><p>Ac2 c5</p></li>
+      </ol>
+      <ol data-button="OpenSpanish">
+        <li><p>e4  e5</p></li>
+        <li><p>Cf3 Cc6</p></li>
+        <li><p>Ab5 a6</p></li>
+        <li><p>Aa4 Cf6</p></li>
+        <li><p>O-O Nxe4</p></li>
+        <li><p>d4  b5</p></li>
+        <li><p>Ab3 d5</p></li>
+        <li><p>dxe5 Bes</p></li>
+        <li><p>Cbd2 Cc5</p></li>
+      </ol>
+      <ol data-button="BerlinDefense">
+        <li><p>e4  e5</p></li>
+        <li><p>Cf3 Cc6</p></li>
+        <li><p>Ab5 Cf6</p></li>
+        <li><p>O-O Cxe4</p></li>
+        <li><p>d4  Cd6</p></li>
+        <li><p>Axc6 dxc6</p></li>
+        <li><p>dxe5 Cf5</p></li>
+        <li><p>Qxd8+ Kxd8</p></li>
+      </ol>
+    </section>
+  </main>
+  <aside>
+    <form>
+      <div>
+        <input type="radio" name="open" id="RuyLopez" value="RuyLopez" checked>
+        <label for="RuyLopez">Ruy Lopez</label>
+      </div>
+      <div>
+        <input type="radio" name="open" id="ClosedSpanish" value="ClosedSpanish">
+        <label for="ClosedSpanish">Variante chiusa</label>
+      </div>
+      <div>
+        <input type="radio" name="open" id="OpenSpanish" value="OpenSpanish">
+        <label for="OpenSpanish">Variante aperta</label>
+      </div>
+      <div>
+        <input type="radio" name="open" id="BerlinDefense" value="BerlinDefense">
+        <label for="BerlinDefense">Difesa berlinese</label>
+      </div>   
+    </form>
+  </aside>
+  <script>
+    var board = null
+    var game = new Chess()
+    var config = {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd
+    }
+
+    var moves = []
+    var pointer = -1
+    
+    //controllo dei bottoni
+    const clearButton = document.querySelector('#clear')
+    const undo = document.querySelector('#before')
+    const redo = document.querySelector('#after')
+
+    function enable(element){
+      element.removeAttribute('disabled','')
+      element.classList.remove('disabled')
+    }
+    
+    function disable(element){
+      element.setAttribute('disabled','')
+      element.classList.add('disabled')
+    }
+
+    disable(undo)
+    disable(redo)
+
+    clearButton.onclick = (event) => {
+      moves = []
+      pointer = -1
+      disable(undo)
+      disable(redo)
+      game = new Chess()
+      board.position('start')
+    }
+
+    undo.onclick = (event) => {
+      pointer--
+      enable(redo)
+      if(pointer == -1){
+        disable(undo)
+        game = new Chess()
+        board.position('start')
+        updateLi(pointer)
+        return 1
+      }
+
+      game = new Chess(moves[pointer])
+      board.position(moves[pointer])
+      updateLi(pointer)
+      console.log(pointer)
+    }
+
+    redo.onclick = (event) => {
+      enable(undo)
+      pointer++
+
+      if(pointer === moves.length - 1) disable(redo)
+
+      game = new Chess(moves[pointer])
+      board.position(moves[pointer])
+      updateLi(pointer)
+      console.log(pointer)
+    }
+
+    //controllo dei radio button
+    const form = document.querySelector('form')
+    const ol = document.querySelectorAll('ol')
+
+    form.onclick = (event) => {
+      data = new FormData(form)
+      for(var name of data)
+        name = name[1]
+
+      console.log(name)
+
+      ol.forEach((entry) => {
+        console.log(entry)
+        if(entry.classList.contains('visible') && entry.attributes['data-button'].nodeValue !== name)
+          entry.classList.remove('visible')
+        else {
+          if(entry.attributes['data-button'].nodeValue === name)
+            entry.classList.add('visible')
+        }
+      })
+      reloadP()
+    }
+
+    //funzione per mostrare l'avanzamento delle mosse
+    var p = document.querySelectorAll('ol.visible p')
+
+    function reloadP(){
+      p = document.querySelectorAll('ol.visible p')
+    }
+
+    function updateLi(pointer){
+      p.forEach((entry, index) => {
+        if(index === Math.floor(pointer/2)) {
+          entry.classList.add('selected')
+        } else if(entry.classList.contains('selected')) {
+          entry.classList.remove('selected')
+        }
+      })
+    }
+
+    //funzioni della scacchiera (copiate)
+    function onDragStart (source, piece, position, orientation) {
+      // do not pick up pieces if the game is over
+      if (game.game_over()) return false
+
+      // only pick up pieces for the side to move
+      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false
+      }
+    }
+
+    function onDrop (source, target) {
+      // see if the move is legal
+      var move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+      })
+
+      // illegal move
+      if (move === null) return 'snapback'
+      
+      updateStatus()
+    }
+
+    // update the board position after the piece snap
+    // for castling, en passant, pawn promotion
+    function onSnapEnd () {
+      board.position(game.fen())
+    }
+
+    //aggiornamento della memoria delle mosse
+    function updateStatus () {
+      pointer++
+      if(pointer < moves.length - 1){
+        moves = moves.slice(0, pointer)
+      }
+
+      moves.push(game.fen())
+
+      enable(undo)
+      disable(redo)
+      updateLi(pointer)
+      console.log(pointer)
+    }
+
+
+    board = Chessboard('myBoard', config)
+  </script>
+</body>
+</html>
